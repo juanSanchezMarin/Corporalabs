@@ -10,6 +10,8 @@ import XCTest
 
 class CorporalabsTests: XCTestCase {
 
+    var apiManager = APIManager()
+
     override func setUp() {
         super.setUp()
     }
@@ -19,7 +21,7 @@ class CorporalabsTests: XCTestCase {
 
         let params: APIParams = APIParams(articleType: "mostemailed", lastDaysType: "7")
 
-        sharedAPIManager.fetchFilms(params: params) { (result, articles) in
+        apiManager.fetchArticlesServer(params: params) { result, articles in
             switch result {
                 case .success:
                     guard let articles = articles else { return XCTFail("Test failed testGetAllArticles") }
