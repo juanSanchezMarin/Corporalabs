@@ -17,7 +17,7 @@ public class APIManager {
     ///   - params: APIParams object with customize the results an provide authorization for request.
     ///   - output: request response decoded with main model (array of Result model).
 
-    func fetchFilms(params: APIParams, output: @escaping(_ result: APIResult, _ articles: [Article]?) -> Void) {
+    func fetchArticlesServer(params: APIParams, output: @escaping(_ result: APIResult, _ articles: [Article]?) -> Void) {
         let path = Constants.Paths.base + params.articleType + "/all-sections/" + params.lastDaysType
         let url = path + ".json?api-key=" + Constants.APIinfo.publicKey
         AF.request(url, method: .get)

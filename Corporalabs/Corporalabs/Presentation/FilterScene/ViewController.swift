@@ -8,11 +8,10 @@
 import UIKit
 import Alamofire
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, StoryboardInstantiable {
 
     @IBOutlet weak var articleTypeSegmentedControl: UISegmentedControl!
     @IBOutlet weak var lastDaysSegmentedControl: UISegmentedControl!
-    @IBOutlet weak var sharedFacebook: UISwitch!
     @IBOutlet weak var sharedFacebookSwitch: UISwitch!
     @IBOutlet weak var sharedTwitterSwitch: UISwitch!
     @IBOutlet weak var searchbutton: UIButton!
@@ -25,14 +24,34 @@ class ViewController: UIViewController {
             self.sharedOptionsView.isHidden = !showSharedOptions
         }
     }
+    var viewModel: ArticlesListViewModel!
+
+    static func create(with viewModel: ArticlesListViewModel) -> ViewController {
+        let view = ViewController.instantiateViewController()
+        view.viewModel = viewModel
+        return view
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         self.configureView()
+        bind(to: viewModel)
+        viewModel.viewDidLoad()
+    }
+
+    private func bind(to viewModel: ArticlesListViewModel) {
+        viewModel.items.observe(on: self) { [weak self] _ in self?.updateItems() }
+    }
+
+    private func updateItems() {
+        if !viewModel.isEmpty {
+            let viewController: ArticlesListViewController = ArticlesListViewController.create(with: viewModel)
+            self.navigationController?.pushViewController(viewController, animated: true)
+        }
     }
 
     func configureView() {
-        self.sharedFacebook.isOn = false
+        self.sharedFacebookSwitch.isOn = false
         self.sharedTwitterSwitch.isOn = false
         self.sharedOptionsView.isHidden = true
         self.articleTypeSegmentedControl.addTarget(self, action: #selector(segmentedControlValueChanged(_:)), for: .valueChanged)
@@ -56,11 +75,6 @@ class ViewController: UIViewController {
             params = APIParams(articleType: articleTypes[articleTypeSegmentedControl.selectedSegmentIndex], lastDaysType: lastDaysTypes[lastDaysSegmentedControl.selectedSegmentIndex], sharedFacebook: sharedFacebookSwitch.isOn, sharedTwitter: sharedTwitterSwitch.isOn)
         }
 
-        sharedAPIManager.fetchFilms(params: params) { (result, articles) in
-           switch result {
-               case .success: print(articles?[0].title)
-               case .error: print("Error")
-           }
-        }
+        self.viewModel.loadArticles(params: params)
     }
 }
